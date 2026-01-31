@@ -1,0 +1,72 @@
+// server/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Người dùng (Sinh viên)
+model User {
+  id        String    @id @default(uuid()) // ID dạng chuỗi ngẫu nhiên
+  email     String    @unique
+  password  String    // Sẽ mã hóa sau
+  name      String?
+  createdAt DateTime  @default(now())
+  
+  subjects  Subject[] // Một SV có nhiều môn học
+}
+
+// 2. Môn học (Ví dụ: Lập trình Web, Triết học...)
+model Subject {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  createdAt   DateTime   @default(now())
+
+  documents   Document[] // Một môn có nhiều tài liệu PDF
+}
+
+// 3. Tài liệu gốc (File PDF)
+model Document {
+  id        String    @id @default(uuid())
+  title     String
+  filePath  String    // Đường dẫn file trên server
+  fileSize  Int?
+  subjectId String
+  subject   Subject   @relation(fields: [subjectId], references: [id])
+  uploadedAt DateTime @default(now())
+
+  concepts  Concept[] // Một tài liệu chứa nhiều khái niệm
+}
+
+// 4. Khái niệm (Node trong Knowledge Graph)
+// Đây là phần quan trọng nhất để vẽ sơ đồ
+model Concept {
+  id          String   @id @default(uuid())
+  term        String   // Tên khái niệm (VD: "ReactJS")
+  definition  String   // Định nghĩa tóm tắt
+  pageNumber  Int      // Số trang trong PDF (Để click nhảy tới)
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id])
+  
+  // Quan hệ giữa các khái niệm (Concept A liên quan Concept B)
+  relatedFrom Relation[] @relation("SourceConcept")
+  relatedTo   Relation[] @relation("TargetConcept")
+}
+
+// 5. Mối quan hệ (Cạnh nối trong Graph)
+model Relation {
+  id        String  @id @default(uuid())
+  sourceId  String
+  targetId  String
+  type      String? // Loại quan hệ (VD: "là thành phần của", "tương tự")
+
+  source    Concept @relation("SourceConcept", fields: [sourceId], references: [id])
+  target    Concept @relation("TargetConcept", fields: [targetId], references: [id])
+}
