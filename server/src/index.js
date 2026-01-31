@@ -1,17 +1,28 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 // Import hàm thông minh mới
 const { askSmartAI, extractWithHF } = require('./services/aiService');
 const documentRoutes = require('./routes/documentRoutes');
+const conceptRoutes = require('./routes/conceptRoutes');
+const authRoutes = require('./routes/authRoutes');
+const subjectRoutes = require('./routes/subjectRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// Phục vụ các file tĩnh từ thư mục uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/concepts', conceptRoutes);
+app.use('/api/subjects', subjectRoutes);
 
 app.get('/', (req, res) => {
   res.send('🚀 AI Personal Brain Server is running!');

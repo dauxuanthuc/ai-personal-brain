@@ -70,15 +70,58 @@ const uploadDocument = async (req, res) => {
             const cleanJson = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();
             concepts = JSON.parse(cleanJson);
 
-            for (const concept of concepts) {
-                await prisma.concept.create({
-                    data: {
-                        term: concept.term,
-                        definition: concept.definition,
-                        pageNumber: concept.page || 1, 
-                        documentId: newDoc.id
+            // Lấy tất cả documents trong cùng subject
+            const subjectDocs = await prisma.document.findMany({
+                where: { subjectId: subjectId },
+                include: { concepts: true }
+            });
+
+            // Tạo map các khái niệm đã tồn tại trong subject (normalize để so sánh)
+            const existingConceptsMap = new Map();
+            for (const doc of subjectDocs) {
+                for (const existingConcept of doc.concepts) {
+                    const normalizedTerm = existingConcept.term.toLowerCase().trim();
+                    if (!existingConceptsMap.has(normalizedTerm)) {
+                        existingConceptsMap.set(normalizedTerm, existingConcept);
                     }
-                });
+                }
+            }
+
+            for (const concept of concepts) {
+                const normalizedTerm = concept.term.toLowerCase().trim();
+                const existingConcept = existingConceptsMap.get(normalizedTerm);
+
+                if (existingConcept) {
+                    // Khái niệm đã tồn tại - chỉ tạo reference mới
+                    console.log(`♻️  Khái niệm "${concept.term}" đã tồn tại, tạo reference mới...`);
+                    
+                    // Tạo concept mới nhưng đánh dấu là reference
+                    await prisma.concept.create({
+                        data: {
+                            term: existingConcept.term, // Dùng tên chuẩn từ concept gốc
+                            definition: existingConcept.definition, // Giữ định nghĩa gốc
+                            pageNumber: concept.page || 1,
+                            documentId: newDoc.id
+                        }
+                    });
+                } else {
+                    // Khái niệm mới - tạo mới
+                    console.log(`✨ Tạo khái niệm mới: "${concept.term}"`);
+                    await prisma.concept.create({
+                        data: {
+                            term: concept.term,
+                            definition: concept.definition,
+                            pageNumber: concept.page || 1, 
+                            documentId: newDoc.id
+                        }
+                    });
+                    
+                    // Thêm vào map để lần sau check
+                    existingConceptsMap.set(normalizedTerm, { 
+                        term: concept.term, 
+                        definition: concept.definition 
+                    });
+                }
             }
         } catch (e) {
             console.error("⚠️ Lỗi đọc JSON từ AI:", e);
@@ -97,4 +140,57 @@ const uploadDocument = async (req, res) => {
     }
 };
 
-module.exports = { uploadDocument };
+const deleteDocument = async (req, res) => {
+    try {
+        const { documentId } = req.params;
+        
+        if (!documentId) {
+            return res.status(400).json({ error: "Cần cung cấp documentId" });
+        }
+
+        // Tìm document
+        const doc = await prisma.document.findUnique({
+            where: { id: documentId },
+            include: { concepts: true }
+        });
+
+        if (!doc) {
+            return res.status(404).json({ error: "Không tìm thấy tài liệu" });
+        }
+
+        // Xóa tất cả Relation liên quan đến concepts của document này
+        for (const concept of doc.concepts) {
+            await prisma.relation.deleteMany({
+                where: {
+                    OR: [
+                        { sourceId: concept.id },
+                        { targetId: concept.id }
+                    ]
+                }
+            });
+        }
+
+        // Xóa tất cả Concept của document
+        await prisma.concept.deleteMany({
+            where: { documentId: documentId }
+        });
+
+        // Xóa file PDF từ disk
+        if (doc.filePath && fs.existsSync(doc.filePath)) {
+            fs.unlinkSync(doc.filePath);
+            console.log(`✅ Xóa file: ${doc.filePath}`);
+        }
+
+        // Xóa Document
+        await prisma.document.delete({
+            where: { id: documentId }
+        });
+
+        res.json({ message: "Xóa tài liệu thành công!", documentId });
+    } catch (error) {
+        console.error("❌ Lỗi xóa:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+module.exports = { uploadDocument, deleteDocument };

@@ -1,24 +1,26 @@
 {
   "name": "server",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.0-beta.1",
+  "description": "Backend for AI Personal Digital Brain - Knowledge Management System",
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["ai", "education", "knowledge-graph", "nlp"],
+  "author": "Xuan Thuc",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^4.13.11",
     "@prisma/client": "^5.10.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "groq-sdk": "^0.37.0",
+    "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "pdf-data-parser": "^1.2.20"
   },

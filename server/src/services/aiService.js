@@ -59,4 +59,52 @@ async function extractWithHF(text) {
     }
 }
 
-module.exports = { askSmartAI, extractWithHF };
+// Chuẩn hóa text: lowercase, bỏ dấu tiếng Việt, bỏ dấu câu
+function normalizeText(text) {
+    return text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Bỏ dấu tiếng Việt
+        .replace(/[?.,!;:]/g, ""); // Bỏ dấu câu
+}
+
+// Hàm nhận diện các khái niệm từ câu hỏi dựa trên Knowledge Graph (NLP + Database match)
+async function extractConceptsFromQuestion(question, conceptsInDB) {
+    try {
+        console.log("🔍 Đang phân tích câu hỏi bằng Knowledge Graph + NLP...");
+        
+        // Chuẩn hóa câu hỏi
+        const normalized = normalizeText(question);
+        
+        // Tách từ và filter từ khóa
+        const words = normalized
+            .split(/\s+/)
+            .filter(word => word.length > 2);
+
+        // Loại bỏ các từ thường gặp
+        const stopwords = new Set([
+            'la', 'cua', 'trong', 'nao', 'the', 'cai', 'no', 'duoc', 'lam',
+            'co', 'khong', 'va', 'hay', 'hoac', 'voi', 'tu', 'den', 'khac',
+            'giua', 'so', 'sanh', 'tuong', 'ung', 'hon', 'kem', 'hay', 'hoac'
+        ]);
+        
+        const keywords = words.filter(word => !stopwords.has(word));
+        
+        // 👉 ĐỐI CHIẾU VỚI KNOWLEDGE GRAPH: Tìm concepts khớp từ khóa
+        const matches = conceptsInDB.filter(concept => {
+            const conceptNormalized = normalizeText(concept.term);
+            // Kiểm tra xem concept có chứa bất kỳ keyword nào không
+            return keywords.some(k => conceptNormalized.includes(k) || k.includes(conceptNormalized.split(' ')[0]));
+        });
+        
+        const matchedTerms = matches.map(m => m.term);
+        console.log("✅ Khái niệm khớp từ Knowledge Graph:", matchedTerms.slice(0, 5));
+        
+        return matchedTerms.length > 0 ? matchedTerms : keywords.slice(0, 3);
+    } catch (error) {
+        console.error("⚠️ Lỗi NLP:", error);
+        return [];
+    }
+}
+
+module.exports = { askSmartAI, extractWithHF, extractConceptsFromQuestion, normalizeText };

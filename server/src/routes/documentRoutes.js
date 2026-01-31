@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const { uploadDocument } = require('../controllers/documentController');
+const { uploadDocument, deleteDocument } = require('../controllers/documentController');
 
 const router = express.Router();
 
@@ -18,7 +18,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // API Endpoint: POST /api/documents/upload
-// upload.single('pdfFile'): Nhận 1 file từ field tên là 'pdfFile'
 router.post('/upload', upload.single('pdfFile'), uploadDocument);
+
+// API Endpoint: DELETE /api/documents/:documentId
+router.delete('/:documentId', deleteDocument);
 
 module.exports = router;
