@@ -1,9 +1,17 @@
+/**
+ * Concept Routes
+ * Refactored with DI Container
+ */
+
 const express = require('express');
-const { deleteConcept } = require('../controllers/conceptController');
 
-const router = express.Router();
+const createConceptRoutes = (container) => {
+  const router = express.Router();
+  const conceptController = container.getConceptController();
 
-// DELETE /api/concepts/:conceptId
-router.delete('/:conceptId', deleteConcept);
+  router.delete('/:conceptId', conceptController.deleteConcept);
 
-module.exports = router;
+  return router;
+};
+
+module.exports = createConceptRoutes;

@@ -1,26 +1,31 @@
+/**
+ * Document Routes
+ * Refactored with DI Container
+ */
+
 const express = require('express');
 const multer = require('multer');
-const { uploadDocument, deleteDocument } = require('../controllers/documentController');
 
-const router = express.Router();
+const createDocumentRoutes = (container) => {
+  const router = express.Router();
+  const documentController = container.getDocumentController();
 
-// Cấu hình nơi lưu file (thư mục 'uploads/')
-const storage = multer.diskStorage({
+  // Configure file storage
+  const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/')
+      cb(null, 'uploads/');
     },
     filename: function (req, file, cb) {
-        // Đặt tên file: timestamp-ten-goc.pdf
-        cb(null, Date.now() + '-' + file.originalname)
-    }
-});
+      cb(null, Date.now() + '-' + file.originalname);
+    },
+  });
 
-const upload = multer({ storage: storage });
+  const upload = multer({ storage });
 
-// API Endpoint: POST /api/documents/upload
-router.post('/upload', upload.single('pdfFile'), uploadDocument);
+  router.post('/upload', upload.single('pdfFile'), documentController.uploadDocument);
+  router.delete('/:documentId', documentController.deleteDocument);
 
-// API Endpoint: DELETE /api/documents/:documentId
-router.delete('/:documentId', deleteDocument);
+  return router;
+};
 
-module.exports = router;
+module.exports = createDocumentRoutes;

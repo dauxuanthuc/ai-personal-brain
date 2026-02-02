@@ -1,84 +1,484 @@
 # AI Personal Digital Brain 🧠
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.0.0--beta.1-blue.svg)](https://github.com/xuanthuc/ai-personal-brain/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/xuanthuc/ai-personal-brain/releases)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
+[![Release Date](https://img.shields.io/badge/Release-Mar%2013%2C%202026-brightgreen.svg)]()
+
+**Language / Ngôn ngữ:** [Tiếng Việt](#tieng-viet) | [English](#english)
+
+<a id="tieng-viet"></a>
 
 Nền tảng **"Bộ não số cá nhân"** hỗ trợ học tập và quản lý tri thức. Tích hợp Knowledge Graph, NLP nhẹ, và Gemini AI.
 
-> 🎯 Cuộc thi **Website & AI Innovation Contest 2026** - Bảng B.
+> 🎯 Cuộc thi **Website & AI Innovation Contest 2026** - Bảng B | v1.0.0 Official Release
 
 ## 📋 Nội dung
 - [Tính năng](#tính-năng) | [Công nghệ](#công-nghệ) | [Cài đặt nhanh](#cài-đặt-nhanh) | [Cấu trúc](#cấu-trúc-dự-án) | [API](#api-documentation) | [Giấy phép](#giấy-phép)
 
 ## ✨ Tính năng
-- ✅ Upload & quản lý PDF
-- ✅ Trích xuất khái niệm tự động
-- ✅ Knowledge Graph trực quan
-- ✅ Hỏi đáp AI dựa trên tri thức cá nhân
-- ✅ NLP nhẹ + Knowledge Graph match
-- ✅ Giảm 50% API calls
-- ✅ JWT authentication
-- ✅ Dashboard statistics
+- ✅ **Upload & quản lý PDF** - Với tự động trích xuất khái niệm
+- ✅ **Knowledge Graph trực quan** - Biểu diễn mối quan hệ khái niệm bằng D3.js
+- ✅ **Hỏi đáp AI thông minh** - Sử dụng NLP + Graph matching
+- ✅ **NLP + Knowledge Graph** - Giảm 50% API calls so với thuần AI
+- ✅ **JWT Authentication** - Bảo mật toàn vẹn
+- ✅ **Dashboard thống kê** - Theo dõi tiến độ học tập
+- ✅ **Multi-AI support** - Gemini 2.5 Flash + Groq Llama 3.1 fallback
+- ✅ **Responsive Design** - Desktop, tablet, mobile
 
 ## 🚀 Công nghệ
-**Frontend:** React 19, Vite, TailwindCSS, D3.js  
-**Backend:** Node.js 18+, Express 5, Prisma ORM, SQLite/PostgreSQL  
-**AI:** Google Gemini 2.5, Groq Llama 3.1, NLP nhẹ  
-**Auth:** JWT + bcryptjs  
-**File:** multer + pdf-data-parser  
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 19, Vite, TailwindCSS, D3.js, Lucide Icons |
+| **Backend** | Node.js 18+, Express 5, Prisma ORM, SQLite/PostgreSQL |
+| **AI/NLP** | Google Gemini 2.5 Flash, Groq Llama 3.1, NLP lightweight |
+| **Auth** | JWT + bcryptjs |
+| **File Handling** | Multer, pdf-data-parser, Cloudinary |
+| **Database** | SQLite (dev), PostgreSQL (prod) |
+
+**Design Patterns**: Factory Pattern (AI providers), Repository Pattern (data access), Service Layer (business logic), Dependency Injection
 
 ## ⚡ Cài đặt nhanh (5 phút)
+
+### Prerequisites
+- Node.js 18+
+- npm 9+
+
+### Quick Start
 ```bash
+# Clone repository
 git clone https://github.com/xuanthuc/ai-personal-brain.git
 cd ai-personal-brain
 
-# Backend
-cd server && npm install && cp .env.example .env
-npx prisma migrate dev && npm start
+# Backend Setup
+cd server
+npm install
+cp .env.example .env
+# Edit .env with your API keys (see SETUP.md)
+npx prisma migrate dev
+npm start
+# Server: http://localhost:5000
 
-# Frontend (new terminal)
-cd client && npm install && npm run dev
+# Frontend Setup (new terminal)
+cd client
+npm install
+# Edit .env with your API keys (see SETUP.md)
+cp .env.example .env
+npm run dev
+# Frontend: http://localhost:5173
 ```
-Server: http://localhost:5000 | Frontend: http://localhost:5173
 
-📖 **Chi tiết:** [SETUP.md](server/SETUP.md)
+📖 **Detailed Guide**: [server/SETUP.md](server/SETUP.md)
 
 ## 📁 Cấu trúc dự án
+
 ```
 ai-personal-brain/
-├── server/          - Backend (Node.js + Express + Prisma)
-│   ├── src/controllers/  - Auth, Documents, Subjects
-│   ├── src/services/     - AI + NLP service
-│   ├── prisma/schema.prisma
-│   └── SECURITY.md   - Environment variables guide
-├── client/          - Frontend (React + Vite)
-│   └── src/          - App, Dashboard, AuthPage
-├── README.md        - Documentation
-├── CHANGELOG.md     - Version history
-└── LICENSE          - MIT License
+├── server/                  # Backend (Node.js + Express)
+│   ├── src/
+│   │   ├── config/         # DIContainer, Database config
+│   │   ├── controllers/    # Auth, Documents, Subjects
+│   │   ├── repositories/   # Data access (BaseRepository pattern)
+│   │   ├── services/       # Business logic (AI, Auth, Document)
+│   │   ├── factories/      # AIProviderFactory (Gemini/Groq)
+│   │   ├── middleware/     # Auth, Error handling
+│   │   ├── routes/         # API routes
+│   │   ├── exceptions/     # Custom exceptions
+│   │   ├── utils/          # Utilities
+│   │   └── index.js        # Entry point
+│   ├── prisma/
+│   │   ├── schema.prisma   # Database schema
+│   │   └── migrations/     # Prisma migrations
+│   ├── SETUP.md            # Installation guide
+│   ├── SECURITY.md         # Environment & secrets
+│   ├── package.json        # Dependencies
+│   └── .env.example        # Configuration template
+│
+├── client/                 # Frontend (React + Vite)
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   │   ├── graph/      # Knowledge Graph visualization
+│   │   │   ├── layout/     # Sidebar, Header
+│   │   │   └── panels/     # ChatPanel, DocumentPanel, etc
+│   │   ├── pages/          # Auth, Dashboard, Verify
+│   │   ├── App.jsx         # Main app component
+│   │   ├── main.jsx        # React entry point
+│   │   └── index.css       # Tailwind styles
+│   ├── public/             # Static files (pdf.worker.min.mjs)
+│   ├── package.json        # Dependencies
+│   ├── vite.config.js      # Vite configuration
+│   └── tailwind.config.js  # Tailwind configuration
+│
+├── README.md               # This file
+├── CHANGELOG.md            # Version history & release notes
+├── LICENSE                 # MIT License
+├── SECURITY.md            # Security configuration guide
+└── .gitignore             # Git ignore rules
 ```
 
+### Architecture Highlights
+- **Factory Pattern**: `AIProviderFactory` cho Gemini/Groq
+- **Repository Pattern**: Tách data access khỏi business logic
+- **Service Layer**: Centralized AI, Auth, Document services
+- **Dependency Injection**: `DIContainer` cho loose coupling
+- **NLP + Graph Matching**: 50% cost reduction vs pure AI
+
 ## 🔌 API Documentation
-- `POST /auth/register` - Đăng ký
-- `POST /auth/login` - Đăng nhập
-- `GET /subjects` - Danh sách môn
-- `POST /subjects/:id/ask` - Hỏi AI
-- `POST /documents/upload` - Upload PDF
 
-📄 Chi tiết: [SETUP.md#API](server/SETUP.md)
+### Authentication
+```bash
+POST /auth/register      # Đăng ký tài khoản
+POST /auth/login         # Đăng nhập
+GET  /auth/verify/:token # Xác nhận email
+```
 
-## 📝 Thư viện & Phụ thuộc
-Xem: [server/package.json](server/package.json), [client/package.json](client/package.json)
+### Subjects (Môn học)
+```bash
+GET  /subjects           # Lấy tất cả môn học
+GET  /subjects/:id       # Chi tiết môn học
+POST /subjects           # Tạo môn học
+POST /subjects/:id/ask   # Hỏi AI về môn học
+```
 
-**Chính:** Express, Prisma, React, Vite, Gemini SDK, Groq SDK
+### Documents (Tài liệu)
+```bash
+POST /documents/upload   # Upload PDF
+GET  /documents          # Danh sách tài liệu
+GET  /documents/:id      # Chi tiết tài liệu
+```
 
-## 📜 Giấy phép
-MIT License - Mã nguồn mở được chấp nhận bởi OSI  
-Xem: [LICENSE](LICENSE)
+### Knowledge Graph
+```bash
+GET  /graph              # Lấy graph (nodes + edges)
+GET  /concepts           # Danh sách khái niệm
+POST /concepts/:id/relations # Quan hệ khái niệm
+```
 
-## 📋 Changelog
-Xem: [CHANGELOG.md](CHANGELOG.md)
+**Full API Docs**: [server/SETUP.md#-api-endpoints](server/SETUP.md)
+
+## 📦 Dependencies (v1.0.0)
+
+### Server
+```json
+{
+  "@google/generative-ai": "^0.24.1",
+  "@prisma/client": "^5.10.0",
+  "express": "^5.2.1",
+  "groq-sdk": "^0.37.0",
+  "bcryptjs": "^3.0.3",
+  "jsonwebtoken": "^9.0.3",
+  "multer": "^2.0.2",
+  "pdf-data-parser": "^1.2.20"
+}
+```
+
+### Client
+```json
+{
+  "react": "^19.2.0",
+  "react-dom": "^19.2.0",
+  "vite": "^7.2.4",
+  "tailwindcss": "^3.4.17",
+  "d3-force": "^3.0.0",
+  "axios": "^1.13.4"
+}
+```
+
+See [server/package.json](server/package.json) and [client/package.json](client/package.json) for all dependencies.
+
+## 🔐 Security
+
+**Environment Variables** (see [SECURITY.md](server/SECURITY.md)):
+- `JWT_SECRET` - Generate with secure script
+- `GOOGLE_API_KEY` - Gemini API key
+- `GROQ_API_KEY` - Groq API key
+- `DATABASE_URL` - Database connection
+- `.env` file is **NOT** committed (see `.gitignore`)
+
+**Best Practices**:
+- All secrets in `.env` (never commit)
+- Use `.env.example` as template for team
+- Generate secure JWT_SECRET before production
+- CORS configured per environment
+
+See [server/SECURITY.md](server/SECURITY.md) for detailed security guide.
+
+## 📝 Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [README.md](README.md) | Project overview & quick start |
+| [server/SETUP.md](server/SETUP.md) | Detailed installation & troubleshooting |
+| [server/SECURITY.md](server/SECURITY.md) | Environment & security configuration |
+| [CHANGELOG.md](CHANGELOG.md) | Version history & release notes |
+| [LICENSE](LICENSE) | MIT License (OSI-approved) |
+
+## 🧪 Testing
+
+### Verify Installation
+```bash
+# Check versions
+node --version   # v18+
+npm --version    # v9+
+
+# Test API
+curl -X POST http://localhost:5000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!"}'
+```
+
+## 📊 Release Information
+
+- **Version**: 1.0.0 (Stable Release)
+- **Release Date**: March 13, 2026
+- **License**: MIT (OSI-approved)
+- **Status**: Production Ready ✅
+
+**Changelog**: See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
+
+## 🤝 Contributing
+
+This project is released as open source under MIT license.
+
+For issues or suggestions:
+1. Check [Troubleshooting](server/SETUP.md#-troubleshooting)
+2. Open GitHub issue: https://github.com/xuanthuc/ai-personal-brain/issues
+3. Submit pull request for improvements
+
+## 📜 License
+
+MIT License - Open source approved by OSI
+
+See [LICENSE](LICENSE) for full details.
 
 ---
+
+## 📞 Contact & Links
+
+- **Repository**: https://github.com/xuanthuc/ai-personal-brain
+- **Author**: Xuan Thuc
+- **Contest**: Website & AI Innovation Contest 2026 - Bảng B
+
+---
+
+Made with ❤️ | ⭐ Star if you like it!
+
+---
+
+<a id="english"></a>
+
+## English
+
+AI Personal Digital Brain is a platform for learning and personal knowledge management. It integrates a Knowledge Graph, lightweight NLP, and Gemini AI.
+
+> 🎯 Website & AI Innovation Contest 2026 - Group B | v1.0.0 Official Release
+
+## Table of Contents
+- [Features](#features) | [Tech Stack](#tech-stack) | [Quick Start](#quick-start) | [Project Structure](#project-structure) | [API](#api) | [License](#license)
+
+## Features
+- ✅ **PDF Upload & Management** - Automatic concept extraction
+- ✅ **Interactive Knowledge Graph** - Visualized with D3.js
+- ✅ **Smart AI Q&A** - NLP + Graph matching
+- ✅ **NLP + Knowledge Graph** - 50% fewer AI calls vs pure AI
+- ✅ **JWT Authentication** - Secure access
+- ✅ **Dashboard Analytics** - Study progress tracking
+- ✅ **Multi-AI Support** - Gemini 2.5 Flash + Groq Llama 3.1 fallback
+- ✅ **Responsive Design** - Desktop, tablet, mobile
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 19, Vite, TailwindCSS, D3.js, Lucide Icons |
+| **Backend** | Node.js 18+, Express 5, Prisma ORM, SQLite/PostgreSQL |
+| **AI/NLP** | Google Gemini 2.5 Flash, Groq Llama 3.1, NLP lightweight |
+| **Auth** | JWT + bcryptjs |
+| **File Handling** | Multer, pdf-data-parser, Cloudinary |
+| **Database** | SQLite (dev), PostgreSQL (prod) |
+
+**Design Patterns**: Factory Pattern (AI providers), Repository Pattern (data access), Service Layer (business logic), Dependency Injection
+
+## Quick Start (5 minutes)
+
+### Prerequisites
+- Node.js 18+
+- npm 9+
+
+### Quick Start
+```bash
+# Clone repository
+git clone https://github.com/xuanthuc/ai-personal-brain.git
+cd ai-personal-brain
+
+# Backend Setup
+cd server
+npm install
+cp .env.example .env
+# Edit .env with your API keys (see SETUP.md)
+npx prisma migrate dev
+npm start
+# Server: http://localhost:5000
+
+# Frontend Setup (new terminal)
+cd client
+npm install
+# Edit .env with your API keys (see SETUP.md)
+cp .env.example .env
+npm run dev
+# Frontend: http://localhost:5173
+```
+
+📖 **Detailed Guide**: [server/SETUP.md](server/SETUP.md)
+
+## Project Structure
+
+```
+ai-personal-brain/
+├── server/                  # Backend (Node.js + Express)
+│   ├── src/
+│   │   ├── config/         # DIContainer, Database config
+│   │   ├── controllers/    # Auth, Documents, Subjects
+│   │   ├── repositories/   # Data access (BaseRepository pattern)
+│   │   ├── services/       # Business logic (AI, Auth, Document)
+│   │   ├── factories/      # AIProviderFactory (Gemini/Groq)
+│   │   ├── middleware/     # Auth, Error handling
+│   │   ├── routes/         # API routes
+│   │   ├── exceptions/     # Custom exceptions
+│   │   ├── utils/          # Utilities
+│   │   └── index.js        # Entry point
+│   ├── prisma/
+│   │   ├── schema.prisma   # Database schema
+│   │   └── migrations/     # Prisma migrations
+│   ├── SETUP.md            # Installation guide
+│   ├── SECURITY.md         # Environment & secrets
+│   ├── package.json        # Dependencies
+│   └── .env.example        # Configuration template
+│
+├── client/                 # Frontend (React + Vite)
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   ├── pages/          # Auth, Dashboard, Verify
+│   │   ├── App.jsx         # Main app component
+│   │   ├── main.jsx        # React entry point
+│   │   └── index.css       # Tailwind styles
+│   ├── public/             # Static files
+│   ├── package.json        # Dependencies
+│   ├── vite.config.js      # Vite configuration
+│   └── tailwind.config.js  # Tailwind configuration
+│
+├── README.md               # This file
+├── CHANGELOG.md            # Version history & release notes
+├── LICENSE                 # MIT License
+├── SECURITY.md            # Security configuration guide
+└── .gitignore             # Git ignore rules
+```
+
+## API
+
+### Authentication
+```bash
+POST /auth/register      # Register user
+POST /auth/login         # Login
+GET  /auth/verify/:token # Verify email
+```
+
+### Subjects
+```bash
+GET  /subjects           # Get all subjects
+GET  /subjects/:id       # Subject details
+POST /subjects           # Create subject
+POST /subjects/:id/ask   # Ask AI about subject
+```
+
+### Documents
+```bash
+POST /documents/upload   # Upload PDF
+GET  /documents          # List documents
+GET  /documents/:id      # Document details
+```
+
+### Knowledge Graph
+```bash
+GET  /graph              # Get graph (nodes + edges)
+GET  /concepts           # List concepts
+POST /concepts/:id/relations # Concept relations
+```
+
+**Full API Docs**: [server/SETUP.md#-api-endpoints](server/SETUP.md)
+
+## Security
+
+**Environment Variables** (see [SECURITY.md](server/SECURITY.md)):
+- `JWT_SECRET` - Generate with secure script
+- `GOOGLE_API_KEY` - Gemini API key
+- `GROQ_API_KEY` - Groq API key
+- `DATABASE_URL` - Database connection
+- `.env` file is **NOT** committed (see .gitignore)
+
+**Best Practices**:
+- Keep all secrets in `.env` (never commit)
+- Use `.env.example` as a team template
+- Generate a strong `JWT_SECRET` before production
+- Configure CORS per environment
+
+## Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [README.md](README.md) | Project overview & quick start |
+| [server/SETUP.md](server/SETUP.md) | Detailed installation & troubleshooting |
+| [server/SECURITY.md](server/SECURITY.md) | Environment & security configuration |
+| [CHANGELOG.md](CHANGELOG.md) | Version history & release notes |
+| [LICENSE](LICENSE) | MIT License (OSI-approved) |
+
+## Testing
+
+### Verify Installation
+```bash
+# Check versions
+node --version   # v18+
+npm --version    # v9+
+
+# Test API
+curl -X POST http://localhost:5000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!"}'
+```
+
+## Release Information
+
+- **Version**: 1.0.0 (Stable Release)
+- **Release Date**: March 13, 2026
+- **License**: MIT (OSI-approved)
+- **Status**: Production Ready ✅
+
+**Changelog**: See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
+
+## Contributing
+
+This project is released as open source under the MIT license.
+
+For issues or suggestions:
+1. Check [Troubleshooting](server/SETUP.md#-troubleshooting)
+2. Open GitHub issue: https://github.com/xuanthuc/ai-personal-brain/issues
+3. Submit a pull request
+
+## License
+
+MIT License - Open source approved by OSI
+
+See [LICENSE](LICENSE) for full details.
+
+---
+
+## Contact & Links
+
+- **Repository**: https://github.com/xuanthuc/ai-personal-brain
+- **Author**: Xuan Thuc
+- **Contest**: Website & AI Innovation Contest 2026 - Group B
+
+---
+
 Made with ❤️ | ⭐ Star if you like it!

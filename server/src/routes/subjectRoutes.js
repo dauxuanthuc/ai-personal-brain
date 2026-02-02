@@ -1,16 +1,25 @@
+/**
+ * Subject Routes
+ * Refactored with DI Container
+ */
+
 const express = require('express');
-const { getSubjects, createSubject, getSubjectGraph, deleteSubject, getDocuments, askQuestion } = require('../controllers/subjectController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
-const router = express.Router();
+const createSubjectRoutes = (container) => {
+  const router = express.Router();
+  const subjectController = container.getSubjectController();
 
-router.use(authenticateToken); 
+  router.use(authenticateToken);
 
-router.get('/', getSubjects);
-router.post('/', createSubject);
-router.get('/:subjectId/graph', getSubjectGraph);
-router.get('/:subjectId/documents', getDocuments);
-router.post('/:subjectId/ask', askQuestion); // Route mới cho AI chat
-router.delete('/:subjectId', deleteSubject);
+  router.get('/', subjectController.getSubjects);
+  router.post('/', subjectController.createSubject);
+  router.get('/:subjectId/graph', subjectController.getSubjectGraph);
+  router.get('/:subjectId/documents', subjectController.getDocuments);
+  router.post('/:subjectId/ask', subjectController.askQuestion);
+  router.delete('/:subjectId', subjectController.deleteSubject);
 
-module.exports = router;
+  return router;
+};
+
+module.exports = createSubjectRoutes;

@@ -1,10 +1,21 @@
+/**
+ * Auth Routes
+ * Refactored with DI Container
+ */
+
 const express = require('express');
-const { register, login, verifyEmail, resendVerifyEmail } = require('../controllers/authController');
-const router = express.Router();
 
-router.post('/register', register);
-router.post('/login', login);
-router.get('/verify-email', verifyEmail);
-router.post('/resend-verify', resendVerifyEmail);
+const createAuthRoutes = (container) => {
+  const router = express.Router();
+  const authController = container.getAuthController();
 
-module.exports = router;
+  router.post('/register', authController.register);
+  router.post('/login', authController.login);
+  router.post('/google', authController.googleLogin);
+  router.get('/verify-email', authController.verifyEmail);
+  router.post('/resend-verify', authController.resendVerifyEmail);
+
+  return router;
+};
+
+module.exports = createAuthRoutes;

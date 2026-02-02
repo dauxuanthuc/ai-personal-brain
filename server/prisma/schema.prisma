@@ -10,7 +10,9 @@ datasource db {
 model User {
   id        String    @id @default(uuid())
   email     String    @unique
-  password  String
+  password  String?
+  googleId  String?   @unique
+  authProvider String?
   name      String?
   avatarUrl String?
   emailVerified Boolean @default(false)

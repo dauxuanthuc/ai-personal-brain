@@ -1,43 +1,24 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+/**
+ * Concept Controller - Handler cho concept routes
+ * SRP: Chỉ xử lý request/response
+ * DIP: Nhận ConceptService qua constructor
+ */
 
-const deleteConcept = async (req, res) => {
-    try {
+const ConceptController = (conceptService) => {
+  return {
+    /**
+     * DELETE /api/concepts/:conceptId
+     */
+    deleteConcept: async (req, res, next) => {
+      try {
         const { conceptId } = req.params;
-
-        if (!conceptId) {
-            return res.status(400).json({ error: "Cần cung cấp conceptId" });
-        }
-
-        // Kiểm tra concept có tồn tại không
-        const concept = await prisma.concept.findUnique({
-            where: { id: conceptId }
-        });
-
-        if (!concept) {
-            return res.status(404).json({ error: "Khái niệm không tồn tại hoặc đã bị xóa" });
-        }
-
-        // Xóa tất cả Relation liên quan
-        await prisma.relation.deleteMany({
-            where: {
-                OR: [
-                    { sourceId: conceptId },
-                    { targetId: conceptId }
-                ]
-            }
-        });
-
-        // Xóa Concept
-        const deleted = await prisma.concept.delete({
-            where: { id: conceptId }
-        });
-
-        res.json({ message: "Xóa khái niệm thành công!", conceptId });
-    } catch (error) {
-        console.error("❌ Lỗi xóa:", error);
-        res.status(500).json({ error: error.message });
-    }
+        const result = await conceptService.deleteConcept(conceptId);
+        res.json(result);
+      } catch (error) {
+        next(error);
+      }
+    },
+  };
 };
 
-module.exports = { deleteConcept };
+module.exports = ConceptController;

@@ -1,110 +1,119 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { HfInference } = require("@huggingface/inference");
-const Groq = require("groq-sdk");
-require('dotenv').config();
+/**
+ * AI Service - Business logic layer
+ * SRP: Chỉ xử lý AI-related logic
+ * DIP: Depend on AIProviderFactory, không depend trực tiếp trên Gemini/Groq
+ */
 
-// --- 1. CẤU HÌNH ---
-// Gemini
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-// Sử dụng model gemini-2.5-flash cho tốc độ nhanh và ổn định hơn
-const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const AIProviderFactory = require('../factories/AIProviderFactory');
+const { HfInference } = require('@huggingface/inference');
 
-// Groq
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+class AIService {
+  constructor(primaryProvider = 'gemini', fallbackProvider = 'groq') {
+    this.aiProvider = AIProviderFactory.createWithFallback(
+      primaryProvider,
+      fallbackProvider
+    );
+    this.hf = new HfInference(process.env.HF_ACCESS_TOKEN);
+  }
 
-// Hugging Face
-const hf = new HfInference(process.env.HF_ACCESS_TOKEN);
-
-// --- 2. HÀM XỬ LÝ ---
-
-async function askGemini(prompt) {
-    console.log("🤖 Đang gọi Gemini (2.5 Flash)...");
-    const result = await geminiModel.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
-}
-
-async function askGroq(prompt) {
-    console.log("⚡ Đang gọi Groq (Llama3)...");
-    const chatCompletion = await groq.chat.completions.create({
-        messages: [{ role: "user", content: prompt }],
-        model: "llama-3.1-8b-instant", 
-    });
-    return chatCompletion.choices[0]?.message?.content || "";
-}
-
-async function askSmartAI(prompt) {
+  /**
+   * Gọi AI chính (với fallback)
+   */
+  async ask(prompt) {
     try {
-        return await askGemini(prompt);
+      return await this.aiProvider.ask(prompt);
     } catch (error) {
-        console.error("⚠️ Gemini lỗi:", error.message); // In lỗi ra để debug
-        console.log("🔄 Chuyển sang Groq...");
-        
-        try {
-            return await askGroq(prompt);
-        } catch (groqError) {
-            console.error("❌ Groq cũng lỗi:", groqError.message); // In lỗi ra để debug
-            return "Hệ thống đang quá tải hoặc sai API Key. Vui lòng kiểm tra Terminal.";
-        }
+      console.error('❌ AI service error:', error.message);
+      throw error;
     }
-}
+  }
 
-async function extractWithHF(text) {
+  /**
+   * Trích xuất thông tin bằng Hugging Face
+   */
+  async extractWithHF(text) {
     try {
-        // Đổi sang model 'google/flan-t5-small' hoặc tắt tạm nếu chưa cần thiết
-        // Vì model bart-large-cnn chỉ hỗ trợ tiếng Anh tốt
-        return "Tính năng tóm tắt đang bảo trì để tối ưu tiếng Việt."; 
+      // Placeholder: tính năng bảo trì
+      return 'Tính năng tóm tắt đang bảo trì để tối ưu tiếng Việt.';
     } catch (error) {
-        return null;
+      console.error('❌ HF extraction error:', error);
+      return null;
     }
-}
+  }
 
-// Chuẩn hóa text: lowercase, bỏ dấu tiếng Việt, bỏ dấu câu
-function normalizeText(text) {
+  /**
+   * Chuẩn hóa text: lowercase, bỏ dấu tiếng Việt
+   */
+  normalizeText(text) {
     return text
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // Bỏ dấu tiếng Việt
-        .replace(/[?.,!;:]/g, ""); // Bỏ dấu câu
-}
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Bỏ dấu tiếng Việt
+      .replace(/[?.,!;:]/g, ''); // Bỏ dấu câu
+  }
 
-// Hàm nhận diện các khái niệm từ câu hỏi dựa trên Knowledge Graph (NLP + Database match)
-async function extractConceptsFromQuestion(question, conceptsInDB) {
+  /**
+   * Trích xuất khái niệm từ câu hỏi dựa trên Knowledge Graph
+   */
+  async extractConceptsFromQuestion(question, conceptsInDB) {
     try {
-        console.log("🔍 Đang phân tích câu hỏi bằng Knowledge Graph + NLP...");
-        
-        // Chuẩn hóa câu hỏi
-        const normalized = normalizeText(question);
-        
-        // Tách từ và filter từ khóa
-        const words = normalized
-            .split(/\s+/)
-            .filter(word => word.length > 2);
+      console.log('🔍 Phân tích câu hỏi bằng Knowledge Graph + NLP...');
 
-        // Loại bỏ các từ thường gặp
-        const stopwords = new Set([
-            'la', 'cua', 'trong', 'nao', 'the', 'cai', 'no', 'duoc', 'lam',
-            'co', 'khong', 'va', 'hay', 'hoac', 'voi', 'tu', 'den', 'khac',
-            'giua', 'so', 'sanh', 'tuong', 'ung', 'hon', 'kem', 'hay', 'hoac'
-        ]);
-        
-        const keywords = words.filter(word => !stopwords.has(word));
-        
-        // 👉 ĐỐI CHIẾU VỚI KNOWLEDGE GRAPH: Tìm concepts khớp từ khóa
-        const matches = conceptsInDB.filter(concept => {
-            const conceptNormalized = normalizeText(concept.term);
-            // Kiểm tra xem concept có chứa bất kỳ keyword nào không
-            return keywords.some(k => conceptNormalized.includes(k) || k.includes(conceptNormalized.split(' ')[0]));
-        });
-        
-        const matchedTerms = matches.map(m => m.term);
-        console.log("✅ Khái niệm khớp từ Knowledge Graph:", matchedTerms.slice(0, 5));
-        
-        return matchedTerms.length > 0 ? matchedTerms : keywords.slice(0, 3);
+      const normalized = this.normalizeText(question);
+      const words = normalized
+        .split(/\s+/)
+        .filter((word) => word.length > 2);
+
+      // Stopwords tiếng Việt
+      const stopwords = new Set([
+        'la',
+        'cua',
+        'trong',
+        'nao',
+        'the',
+        'cai',
+        'no',
+        'duoc',
+        'lam',
+        'co',
+        'khong',
+        'va',
+        'hay',
+        'hoac',
+        'voi',
+        'tu',
+        'den',
+        'khac',
+        'giua',
+        'so',
+        'sanh',
+        'tuong',
+        'ung',
+        'hon',
+        'kem',
+      ]);
+
+      const keywords = words.filter((word) => !stopwords.has(word));
+
+      // Đối chiếu với Knowledge Graph
+      const matches = conceptsInDB.filter((concept) => {
+        const conceptNormalized = this.normalizeText(concept.term);
+        return keywords.some(
+          (k) =>
+            conceptNormalized.includes(k) ||
+            k.includes(conceptNormalized.split(' ')[0])
+        );
+      });
+
+      const matchedTerms = matches.map((m) => m.term);
+      console.log('✅ Khái niệm khớp:', matchedTerms.slice(0, 5));
+
+      return matchedTerms.length > 0 ? matchedTerms : keywords.slice(0, 3);
     } catch (error) {
-        console.error("⚠️ Lỗi NLP:", error);
-        return [];
+      console.error('⚠️ NLP error:', error);
+      return [];
     }
+  }
 }
 
-module.exports = { askSmartAI, extractWithHF, extractConceptsFromQuestion, normalizeText };
+module.exports = AIService;

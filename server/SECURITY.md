@@ -1,19 +1,25 @@
-# Security Guide
+# Hướng dẫn bảo mật
 
-## Secrets
-All secrets must be in environment variables.
+## Bí mật (Secrets)
+Tất cả bí mật phải nằm trong biến môi trường.
 
-Required:
+Bắt buộc:
 - JWT_SECRET
 - GOOGLE_API_KEY
 - GROQ_API_KEY
 - HF_ACCESS_TOKEN
 
-## Generate JWT_SECRET
+## Tạo JWT_SECRET (từng bước)
+1. Mở terminal tại thư mục dự án.
+2. Chạy lệnh sau để tạo chuỗi bí mật:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
+3. Sao chép kết quả và dán vào file `.env`:
+```env
+JWT_SECRET=<dán_chuỗi_vào_đây>
+```
 
-## Git Hygiene
-- .env is ignored by .gitignore
-- Use .env.example for templates
+## Vệ sinh Git
+- .env đã bị chặn bởi .gitignore
+- Dùng .env.example làm mẫu cấu hình
