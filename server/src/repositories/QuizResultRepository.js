@@ -33,6 +33,19 @@ class QuizResultRepository {
     });
   }
 
+  async getAllForSubject(userId, subjectId, limit = 200) {
+    return this.prisma.quizResult.findMany({
+      where: {
+        userId,
+        subjectId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: limit
+    });
+  }
+
   async getStats(userId, subjectId) {
     const results = await this.prisma.quizResult.findMany({
       where: {

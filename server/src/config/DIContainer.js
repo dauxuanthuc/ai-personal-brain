@@ -29,6 +29,7 @@ const ShareService = require('../services/shareService');
 const AgentService = require('../services/agentService');
 const QuizService = require('../services/quizService');
 const QuizResultService = require('../services/quizResultService');
+const KnowledgeGapService = require('../services/knowledgeGapService');
 const { sendVerificationEmail } = require('../services/emailService');
 
 // Controllers
@@ -41,6 +42,7 @@ const ConceptController = require('../controllers/conceptController');
 const AgentController = require('../controllers/agentController');
 const QuizController = require('../controllers/quizController');
 const QuizResultController = require('../controllers/quizResultController');
+const KnowledgeGapController = require('../controllers/knowledgeGapController');
 
 class DIContainer {
   constructor() {
@@ -231,6 +233,16 @@ class DIContainer {
     return this.instances.quizResultService;
   }
 
+  getKnowledgeGapService() {
+    if (!this.instances.knowledgeGapService) {
+      this.instances.knowledgeGapService = new KnowledgeGapService(
+        this.getConceptRepository(),
+        this.getQuizResultRepository()
+      );
+    }
+    return this.instances.knowledgeGapService;
+  }
+
   /**
    * Lấy Controllers
    */
@@ -268,6 +280,10 @@ class DIContainer {
 
   getQuizResultController() {
     return new QuizResultController(this.getQuizResultService());
+  }
+
+  getKnowledgeGapController() {
+    return new KnowledgeGapController(this.getKnowledgeGapService());
   }
 
   /**

@@ -170,6 +170,19 @@ class ConceptRepository extends BaseRepository {
     });
   }
 
+  async findBySubjectId(subjectId) {
+    return await this.prisma.concept.findMany({
+      where: {
+        document: { subjectId },
+      },
+      include: {
+        document: { select: { title: true } },
+        relatedFrom: true,
+        relatedTo: true,
+      },
+    });
+  }
+
   async bulkCreate(concepts) {
     return await Promise.all(
       concepts.map((concept) => this.create(concept))

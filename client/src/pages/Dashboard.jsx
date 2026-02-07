@@ -3,6 +3,7 @@ import axios from 'axios';
 import { BarChart3, BookOpen, BrainCircuit, FileText, Layers, LogOut, User, Camera, X, Lock, UserPlus } from 'lucide-react';
 import { API_URL, toAbsoluteUrl } from '../config/api';
 import QuizHistoryPanel from '../components/panels/QuizHistoryPanel';
+import KnowledgeGapPanel from '../components/panels/KnowledgeGapPanel';
 
 export default function Dashboard({ user, onLogout, onReturnToApp, onUserUpdate }) {
   const [subjects, setSubjects] = useState([]);
@@ -258,6 +259,10 @@ export default function Dashboard({ user, onLogout, onReturnToApp, onUserUpdate 
             </div>
             <p className="text-emerald-300/70 text-sm">Tổng số khái niệm được trích xuất</p>
           </div>
+        </div>
+
+        <div className="mb-8">
+          <KnowledgeGapPanel subjects={subjects} token={token} />
         </div>
 
         <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-8 backdrop-blur-sm mb-8">
