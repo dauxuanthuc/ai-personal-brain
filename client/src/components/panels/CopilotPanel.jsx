@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Lightbulb, BookOpen, Clock, TrendingUp, Zap, Target, FileText, ChevronRight, Flame } from 'lucide-react';
-import { API_URL } from '../../config/api';
+import apiClient from '../../services/api';
 
 export default function CopilotPanel({ selectedSubject, token }) {
   const [suggestions, setSuggestions] = useState(null);
@@ -21,18 +21,8 @@ export default function CopilotPanel({ selectedSubject, token }) {
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/roadmap/${selectedSubject.id}/copilot`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Không thể tải gợi ý học tập');
-      }
-
-      const result = await response.json();
-      setSuggestions(result.data);
+      const response = await apiClient.get(`/roadmap/${selectedSubject.id}/copilot`);
+      setSuggestions(response.data.data);
     } catch (err) {
       console.error('Error loading copilot suggestions:', err);
       setError(err.message);

@@ -21,6 +21,9 @@ Nền tảng **"Bộ não số cá nhân"** hỗ trợ học tập và quản l�
 - ✅ **Knowledge Graph trực quan** - Biểu diễn mối quan hệ khái niệm bằng D3.js
 - ✅ **Hỏi đáp AI thông minh** - Sử dụng NLP + Graph matching
 - ✅ **NLP + Knowledge Graph** - Giảm 50% API calls so với thuần AI
+- 🎯 **AI Learning Copilot** - Gợi ý học tập realtime, theo dõi chuỗi học (streak), nhắc ôn tập
+- 🗺️ **Personalized Roadmap Generator** - Lộ trình học theo tuần, phân tích khoảng trống kiến thức
+- 📝 **Batch Explanation Quiz** - Giải thích hàng loạt câu hỏi (1 AI call), tiết kiệm 56%+ tokens
 - ✅ **JWT Authentication** - Bảo mật toàn vẹn
 - ✅ **Dashboard thống kê** - Theo dõi tiến độ học tập
 - ✅ **Multi-AI support** - Gemini 2.5 Flash + Groq Llama 3.1 fallback
@@ -155,6 +158,13 @@ GET  /concepts           # Danh sách khái niệm
 POST /concepts/:id/relations # Quan hệ khái niệm
 ```
 
+### AI Learning Features
+```bash
+GET  /roadmap/:subjectId           # Lộ trình học cá nhân hóa (weekly)
+GET  /roadmap/:subjectId/copilot   # Gợi ý học tập realtime + streak
+POST /review/:subjectId/explanations # Giải thích batch (1 AI call)
+```
+
 **Full API Docs**: [server/SETUP.md#-api-endpoints](server/SETUP.md)
 
 ## 📦 Dependencies (v1.0.0)
@@ -230,10 +240,12 @@ curl -X POST http://localhost:5000/auth/register \
 
 ## 📊 Release Information
 
-- **Version**: 1.0.0 (Stable Release)
-- **Release Date**: March 13, 2026
+- **Version**: 1.0.0 (Development)
+- **Release Date**: February 2026 (In Progress)
 - **License**: MIT (OSI-approved)
-- **Status**: Production Ready ✅
+- **Status**: Feature Complete - Production Hardening In Progress 🔨
+
+**Note**: Core features complete. See [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) for deployment roadmap (8 phases, 4-6 weeks).
 
 **Changelog**: See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
 
@@ -282,6 +294,9 @@ AI Personal Digital Brain is a platform for learning and personal knowledge mana
 - ✅ **Interactive Knowledge Graph** - Visualized with D3.js
 - ✅ **Smart AI Q&A** - NLP + Graph matching
 - ✅ **NLP + Knowledge Graph** - 50% fewer AI calls vs pure AI
+- 🎯 **AI Learning Copilot** - Realtime suggestions, study streak tracking, review reminders
+- 🗺️ **Personalized Roadmap Generator** - Weekly learning paths, knowledge gap analysis
+- 📝 **Batch Explanation Quiz** - Bulk explanations (1 AI call), saves 56%+ tokens
 - ✅ **JWT Authentication** - Secure access
 - ✅ **Dashboard Analytics** - Study progress tracking
 - ✅ **Multi-AI Support** - Gemini 2.5 Flash + Groq Llama 3.1 fallback
@@ -406,6 +421,13 @@ GET  /concepts           # List concepts
 POST /concepts/:id/relations # Concept relations
 ```
 
+### AI Learning Features
+```bash
+GET  /roadmap/:subjectId           # Personalized learning roadmap (weekly)
+GET  /roadmap/:subjectId/copilot   # Realtime learning suggestions + streak
+POST /review/:subjectId/explanations # Batch explanations (1 AI call)
+```
+
 **Full API Docs**: [server/SETUP.md#-api-endpoints](server/SETUP.md)
 
 ## Security
@@ -449,10 +471,12 @@ curl -X POST http://localhost:5000/auth/register \
 
 ## Release Information
 
-- **Version**: 1.0.0 (Stable Release)
-- **Release Date**: March 13, 2026
+- **Version**: 1.0.0 (Development)
+- **Release Date**: February 2026 (In Progress)
 - **License**: MIT (OSI-approved)
-- **Status**: Production Ready ✅
+- **Status**: Feature Complete - Production Hardening In Progress 🔨
+
+**Note**: Core features complete. See [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) for deployment roadmap (8 phases, 4-6 weeks).
 
 **Changelog**: See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Calendar, TrendingUp, Clock, Award, ChevronRight, BookOpen } from 'lucide-react';
-import { API_URL } from '../../config/api';
+import apiClient from '../../services/api';
 
 export default function RoadmapPanel({ selectedSubject, token }) {
   const [roadmap, setRoadmap] = useState(null);
@@ -21,18 +21,8 @@ export default function RoadmapPanel({ selectedSubject, token }) {
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/roadmap/${selectedSubject.id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Không thể tải lộ trình học tập');
-      }
-
-      const result = await response.json();
-      setRoadmap(result.data);
+      const response = await apiClient.get(`/roadmap/${selectedSubject.id}`);
+      setRoadmap(response.data.data);
     } catch (err) {
       console.error('Error loading roadmap:', err);
       setError(err.message);

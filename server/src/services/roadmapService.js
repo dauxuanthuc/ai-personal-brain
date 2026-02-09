@@ -31,7 +31,7 @@ class RoadmapService {
     return {
       subjectId,
       totalConcepts: concepts.length,
-      foundationalConcepts: foundationalConcepts.map(c => c.title),
+      foundationalConcepts: foundationalConcepts.map(c => c.term), // Field is 'term' not 'title'
       learningPath,
       weeklySchedule,
       estimatedWeeks: weeklySchedule.length,
@@ -56,17 +56,32 @@ class RoadmapService {
       }
     });
 
-    // Build relationships from links
+    // Build relationships from Relation model
     concepts.forEach(concept => {
-      if (concept.links && Array.isArray(concept.links)) {
-        concept.links.forEach(link => {
-          const targetNode = graph.get(link.targetId);
+      // Relations where this concept is the source
+      if (concept.relatedFrom && Array.isArray(concept.relatedFrom)) {
+        concept.relatedFrom.forEach(relation => {
+          const targetNode = graph.get(relation.targetId);
           const sourceNode = graph.get(concept.id);
 
           if (targetNode && sourceNode) {
-            // If this concept links to another, that other is a prerequisite
-            sourceNode.prerequisites.push(link.targetId);
+            // This concept depends on the target concept (target is prerequisite)
+            sourceNode.prerequisites.push(relation.targetId);
             targetNode.dependents.push(concept.id);
+          }
+        });
+      }
+
+      // Relations where this concept is the target
+      if (concept.relatedTo && Array.isArray(concept.relatedTo)) {
+        concept.relatedTo.forEach(relation => {
+          const sourceNode = graph.get(relation.sourceId);
+          const targetNode = graph.get(concept.id);
+
+          if (sourceNode && targetNode) {
+            // This concept is a dependent of source concept
+            sourceNode.dependents.push(concept.id);
+            targetNode.prerequisites.push(relation.sourceId);
           }
         });
       }
@@ -139,7 +154,7 @@ class RoadmapService {
         const gapInfo = gapMap.get(conceptId) || { category: 'unknown', score: 60 };
         learningPath.push({
           conceptId: node.concept.id,
-          title: node.concept.title,
+          title: node.concept.term, // Field is 'term' not 'title' in schema
           definition: node.concept.definition,
           priority: gapInfo.category === 'weak' ? 'high' : gapInfo.category === 'medium' ? 'medium' : 'low',
           score: gapInfo.score,

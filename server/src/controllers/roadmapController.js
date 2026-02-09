@@ -11,7 +11,7 @@ class RoadmapController {
   async generateRoadmap(req, res, next) {
     try {
       const userId = req.user.userId || req.user.id;
-      const subjectId = parseInt(req.params.subjectId);
+      const subjectId = req.params.subjectId;
 
       if (!subjectId) {
         return res.status(400).json({ error: 'Subject ID is required' });
@@ -35,7 +35,7 @@ class RoadmapController {
   async getRecommendations(req, res, next) {
     try {
       const userId = req.user.userId || req.user.id;
-      const subjectId = parseInt(req.params.subjectId);
+      const subjectId = req.params.subjectId;
       const limit = parseInt(req.query.limit) || 5;
 
       if (!subjectId) {
@@ -60,7 +60,7 @@ class RoadmapController {
   async getCopilotSuggestions(req, res, next) {
     try {
       const userId = req.user.userId || req.user.id;
-      const subjectId = parseInt(req.params.subjectId);
+      const subjectId = req.params.subjectId;
 
       if (!subjectId) {
         return res.status(400).json({ error: 'Subject ID is required' });
@@ -83,7 +83,7 @@ class RoadmapController {
    */
   async getConceptHelp(req, res, next) {
     try {
-      const conceptId = parseInt(req.params.conceptId);
+      const conceptId = req.params.conceptId;
       const context = req.query.context || 'definition'; // definition, example, related, practice
 
       if (!conceptId) {
