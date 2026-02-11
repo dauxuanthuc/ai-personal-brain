@@ -7,11 +7,13 @@
 
 const GeminiProvider = require('./GeminiProvider');
 const GroqProvider = require('./GroqProvider');
+const OpenAICompatibleProvider = require('./OpenAICompatibleProvider');
 
 class AIProviderFactory {
   static PROVIDERS = {
     GEMINI: 'gemini',
     GROQ: 'groq',
+    OPENAI_COMPATIBLE: 'openai-compatible',
   };
 
   /**
@@ -25,22 +27,30 @@ class AIProviderFactory {
       case this.PROVIDERS.GROQ:
         return new GroqProvider(process.env.GROQ_API_KEY);
 
+      case this.PROVIDERS.OPENAI_COMPATIBLE:
+        return new OpenAICompatibleProvider(
+          process.env.OPENAI_COMPATIBLE_API_KEY,
+          process.env.OPENAI_COMPATIBLE_BASE_URL || 'https://newapi.ccfilm.online'
+        );
+
       default:
         throw new Error(`Unknown AI provider: ${type}`);
     }
   }
 
   /**
-   * Tạo primary provider với fallback
-   * Strategy: Thử primary trước, nếu lỗi thì dùng fallback
+   * Tạo provider chain với multiple fallbacks
+   * Priority: Primary → Secondary → Tertiary
    */
-  static createWithFallback(primaryType, fallbackType) {
+  static createWithFallback(primaryType, secondaryType, tertiaryType) {
     const primary = this.createProvider(primaryType);
-    const fallback = this.createProvider(fallbackType);
+    const secondary = this.createProvider(secondaryType);
+    const tertiary = tertiaryType ? this.createProvider(tertiaryType) : null;
 
     return {
       primary,
-      fallback,
+      secondary,
+      tertiary,
       ask: async (prompt) => {
         try {
           console.log(
@@ -49,9 +59,19 @@ class AIProviderFactory {
           return await primary.ask(prompt);
         } catch (error) {
           console.warn(
-            `⚠️ Primary provider failed, trying fallback: ${fallback.getName()}`
+            `⚠️ Primary provider failed (${primary.getName()}), trying secondary: ${secondary.getName()}`
           );
-          return await fallback.ask(prompt);
+          try {
+            return await secondary.ask(prompt);
+          } catch (error2) {
+            if (tertiary) {
+              console.warn(
+                `⚠️ Secondary provider failed (${secondary.getName()}), trying tertiary: ${tertiary.getName()}`
+              );
+              return await tertiary.ask(prompt);
+            }
+            throw error2;
+          }
         }
       },
     };
