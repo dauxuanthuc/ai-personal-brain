@@ -8,10 +8,11 @@ const AIProviderFactory = require('../factories/AIProviderFactory');
 const { HfInference } = require('@huggingface/inference');
 
 class AIService {
-  constructor(primaryProvider = 'gemini', fallbackProvider = 'groq', timeout = 30000) {
+  constructor(primaryProvider = 'gemini', secondaryProvider = 'openai-compatible', tertiaryProvider = 'groq', timeout = 30000) {
     this.aiProvider = AIProviderFactory.createWithFallback(
       primaryProvider,
-      fallbackProvider
+      secondaryProvider,
+      tertiaryProvider
     );
     this.hf = new HfInference(process.env.HF_ACCESS_TOKEN);
     this.timeout = timeout; // AI request timeout in milliseconds
