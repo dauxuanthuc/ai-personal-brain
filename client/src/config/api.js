@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://aiinterviewcoach.id.vn';
 export const API_URL = `${API_BASE_URL}/api`;
 
 export const toAbsoluteUrl = (path) => {
@@ -8,4 +8,12 @@ export const toAbsoluteUrl = (path) => {
     : `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
 };
 
-export const uploadsUrl = (filename) => `${API_BASE_URL}/uploads/${filename}`;
+export const uploadsUrl = (filename) => {
+  if (!filename) return filename;
+  if (filename.startsWith('http')) return filename;
+  const normalized = filename.replace(/^\/+/, '');
+  if (normalized.startsWith('uploads/')) {
+    return `${API_BASE_URL}/${normalized}`;
+  }
+  return `${API_BASE_URL}/uploads/${normalized}`;
+};

@@ -49,7 +49,7 @@ class ShareService {
       id: share.id,
       token: share.token,
       shareType: share.shareType,
-      link: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/share/${share.token}`,
+      link: `${process.env.FRONTEND_URL || 'https://aiinterviewcoach.id.vn'}/share/${share.token}`,
     };
   }
 

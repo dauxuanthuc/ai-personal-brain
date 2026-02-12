@@ -38,14 +38,18 @@ model Subject {
 }
 
 model Document {
-  id        String    @id @default(uuid())
-  title     String
-  filePath  String
-  fileSize  Int?
-  subjectId String
-  subject   Subject   @relation(fields: [subjectId], references: [id])
-  uploadedAt DateTime @default(now())
-  concepts  Concept[]
+  id               String    @id @default(uuid())
+  title            String
+  filePath         String
+  fileSize         Int?
+  subjectId        String
+  subject          Subject   @relation(fields: [subjectId], references: [id])
+  uploadedAt       DateTime  @default(now())
+  processingStatus String    @default("pending") // pending | processing | completed | failed
+  processingError  String?
+  concepts         Concept[]
+
+  @@index([processingStatus])
 }
 
 model Concept {

@@ -6,10 +6,11 @@
 const UnauthorizedException = require('../exceptions/UnauthorizedException');
 
 class SubjectService {
-  constructor(subjectRepository, documentRepository, conceptRepository) {
+  constructor(subjectRepository, documentRepository, conceptRepository, cacheService) {
     this.subjectRepository = subjectRepository;
     this.documentRepository = documentRepository;
     this.conceptRepository = conceptRepository;
+    this.cacheService = cacheService;
   }
 
   /**
@@ -68,6 +69,10 @@ class SubjectService {
    * Lấy graph dữ liệu để visualize
    */
   async getSubjectGraph(subjectId) {
+    const cacheKey = `subject:${subjectId}:graph`;
+    const cached = await this.cacheService?.getJson(cacheKey);
+    if (cached) return cached;
+
     const { concepts, documents, relations } = await this.subjectRepository.getSubjectGraph(
       subjectId
     );
@@ -181,7 +186,9 @@ class SubjectService {
       }
     });
 
-    return { nodes, links, documents };
+    const graph = { nodes, links, documents };
+    await this.cacheService?.setJson(cacheKey, graph, 300);
+    return graph;
   }
 }
 

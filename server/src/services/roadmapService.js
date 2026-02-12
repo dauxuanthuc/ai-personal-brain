@@ -1,8 +1,9 @@
 class RoadmapService {
-  constructor({ conceptRepository, quizResultRepository, knowledgeGapService }) {
+  constructor({ conceptRepository, quizResultRepository, knowledgeGapService, cacheService }) {
     this.conceptRepository = conceptRepository;
     this.quizResultRepository = quizResultRepository;
     this.knowledgeGapService = knowledgeGapService;
+    this.cacheService = cacheService;
   }
 
   /**
@@ -12,6 +13,10 @@ class RoadmapService {
    * @returns {Object} Roadmap with weekly schedule and learning path
    */
   async generateRoadmap(userId, subjectId) {
+    const cacheKey = `user:${userId}:subject:${subjectId}:roadmap`;
+    const cached = await this.cacheService?.getJson(cacheKey);
+    if (cached) return cached;
+
     // Step 1: Get all concepts and knowledge gaps
     const concepts = await this.conceptRepository.findBySubjectId(subjectId);
     const knowledgeGaps = await this.knowledgeGapService.analyzeSubject(userId, subjectId);
@@ -28,7 +33,7 @@ class RoadmapService {
     // Step 5: Create weekly schedule
     const weeklySchedule = this._createWeeklySchedule(learningPath, knowledgeGaps);
 
-    return {
+    const roadmap = {
       subjectId,
       totalConcepts: concepts.length,
       foundationalConcepts: foundationalConcepts.map(c => c.term), // Field is 'term' not 'title'
@@ -37,6 +42,9 @@ class RoadmapService {
       estimatedWeeks: weeklySchedule.length,
       generatedAt: new Date()
     };
+
+    await this.cacheService?.setJson(cacheKey, roadmap, 300);
+    return roadmap;
   }
 
   /**

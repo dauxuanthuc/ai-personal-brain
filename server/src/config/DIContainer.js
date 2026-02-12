@@ -31,6 +31,8 @@ const QuizService = require('../services/quizService');
 const QuizResultService = require('../services/quizResultService');
 const KnowledgeGapService = require('../services/knowledgeGapService');
 const RoadmapService = require('../services/roadmapService');
+const CacheService = require('../services/cacheService');
+const queueService = require('../services/queueService');
 const CopilotService = require('../services/copilotService');
 const PersonalizedQuizService = require('../services/personalizedQuizService');
 const BatchExplanationService = require('../services/batchExplanationService');
@@ -147,7 +149,8 @@ class DIContainer {
       this.instances.subjectService = new SubjectService(
         this.getSubjectRepository(),
         this.getDocumentRepository(),
-        this.getConceptRepository()
+        this.getConceptRepository(),
+        this.getCacheService()
       );
     }
     return this.instances.subjectService;
@@ -159,7 +162,9 @@ class DIContainer {
         this.getDocumentRepository(),
         this.getConceptRepository(),
         this.getSubjectRepository(),
-        this.getAIService()
+        this.getAIService(),
+        this.getCacheService(),
+        queueService
       );
     }
     return this.instances.documentService;
@@ -171,7 +176,8 @@ class DIContainer {
         this.getConceptRepository(),
         this.getDocumentRepository(),
         this.getSubjectRepository(),
-        this.getAIService()
+        this.getAIService(),
+        this.getCacheService()
       );
     }
     return this.instances.conceptService;
@@ -224,7 +230,8 @@ class DIContainer {
       this.instances.quizService = new QuizService(
         this.getSubjectRepository(),
         this.getConceptRepository(),
-        this.getAIService()
+        this.getAIService(),
+        this.getCacheService()
       );
     }
     return this.instances.quizService;
@@ -254,10 +261,18 @@ class DIContainer {
       this.instances.roadmapService = new RoadmapService({
         conceptRepository: this.getConceptRepository(),
         quizResultRepository: this.getQuizResultRepository(),
-        knowledgeGapService: this.getKnowledgeGapService()
+        knowledgeGapService: this.getKnowledgeGapService(),
+        cacheService: this.getCacheService()
       });
     }
     return this.instances.roadmapService;
+  }
+
+  getCacheService() {
+    if (!this.instances.cacheService) {
+      this.instances.cacheService = new CacheService();
+    }
+    return this.instances.cacheService;
   }
 
   getCopilotService() {
@@ -359,6 +374,9 @@ class DIContainer {
     console.log('🧹 Cleaning up DI Container...');
     const { closePrismaClient } = require('../config/database');
     await closePrismaClient();
+    if (this.instances.cacheService) {
+      await this.instances.cacheService.disconnect();
+    }
   }
 }
 

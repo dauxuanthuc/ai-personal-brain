@@ -7,10 +7,11 @@
 const ValidationException = require('../exceptions/ValidationException');
 
 class QuizService {
-  constructor(subjectRepository, conceptRepository, aiService) {
+  constructor(subjectRepository, conceptRepository, aiService, cacheService) {
     this.subjectRepository = subjectRepository;
     this.conceptRepository = conceptRepository;
     this.aiService = aiService;
+    this.cacheService = cacheService;
   }
 
   /**
@@ -21,6 +22,9 @@ class QuizService {
    */
   async generateQuiz(subjectId, options = {}) {
     const { count = 10, difficulty = 'medium' } = options;
+    const cacheKey = `subject:${subjectId}:quiz:${count}:${difficulty}`;
+    const cached = await this.cacheService?.getJson(cacheKey);
+    if (cached) return cached;
 
     // Validate subject exists
     const subject = await this.subjectRepository.findById(subjectId);
@@ -41,7 +45,7 @@ class QuizService {
     // Sinh câu hỏi trắc nghiệm (KHÔNG dùng AI)
     const questions = await this._generateQuestions(selectedConcepts, difficulty);
 
-    return {
+    const quiz = {
       quizId: this._generateQuizId(),
       subjectId,
       subjectName: subject.name,
@@ -64,6 +68,9 @@ class QuizService {
       })),
       createdAt: new Date(),
     };
+
+    await this.cacheService?.setJson(cacheKey, quiz, 300);
+    return quiz;
   }
 
   /**
