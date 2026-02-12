@@ -25,6 +25,10 @@ if (!process.env.GOOGLE_API_KEY && !process.env.GROQ_API_KEY) {
 // Import DI Container
 const { getContainer } = require('./config/DIContainer');
 
+// Import queue services
+const queueService = require('./services/queueService');
+const PdfWorker = require('./workers/pdfWorker');
+
 // Import route factories
 const createAuthRoutes = require('./routes/authRoutes');
 const createUserRoutes = require('./routes/userRoutes');
@@ -46,7 +50,7 @@ const PORT = process.env.PORT || 5000;
 
 // CORS Configuration - MUST be before helmet
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'https://aiinterviewcoach.id.vn',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -108,7 +112,8 @@ app.get('/', (req, res) => {
 // Health check with database
 app.get('/health', async (req, res) => {
   try {
-    const prisma = container.getPrismaClient();
+    const { getPrismaClient } = require('./config/database');
+    const prisma = getPrismaClient();
     await prisma.$queryRaw`SELECT 1`;
     res.json({
       status: 'ok',
@@ -156,21 +161,55 @@ app.use((req, res) => {
 // Global Error Handler (phải để cuối cùng)
 app.use(errorHandler);
 
+// Initialize queue and worker
+let pdfWorker = null;
+
+const initializeBackgroundServices = async () => {
+  try {
+    // Initialize queue service
+    await queueService.connect();
+    logger.info('✅ Queue service connected');
+
+    // Start PDF worker
+    pdfWorker = new PdfWorker();
+    await pdfWorker.start();
+    logger.info('✅ PDF Worker started');
+  } catch (error) {
+    logger.error('Failed to initialize background services:', error);
+    logger.warn('⚠️  App will continue without queue/worker functionality');
+  }
+};
+
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   logger.info(`🔥 Server đang chạy tại: http://localhost:${PORT}`);
   logger.info(`📝 Môi trường: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`🔒 Security: Helmet + Rate Limiting enabled`);
   logger.info(`🗄️  Database: ${process.env.DATABASE_URL ? 'Configured' : 'Not configured'}`);
+  
+  // Initialize background services after server starts
+  await initializeBackgroundServices();
 });
 
 // Graceful shutdown
 const gracefulShutdown = async (signal) => {
   logger.info(`👋 Received ${signal}, shutting down gracefully...`);
   try {
+    // Stop worker first
+    if (pdfWorker) {
+      await pdfWorker.stop();
+      logger.info('✅ PDF Worker stopped');
+    }
+
+    // Disconnect queue service
+    await queueService.disconnect();
+    logger.info('✅ Queue service disconnected');
+
+    // Clean up DI container
     const container = getContainer();
     await container.destroy();
     logger.info('✅ Cleanup completed');
+    
     process.exit(0);
   } catch (error) {
     logger.error('❌ Error during shutdown:', error);

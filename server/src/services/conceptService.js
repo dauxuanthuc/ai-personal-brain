@@ -6,20 +6,31 @@
 const ValidationException = require('../exceptions/ValidationException');
 
 class ConceptService {
-  constructor(conceptRepository, documentRepository, subjectRepository, aiService) {
+  constructor(conceptRepository, documentRepository, subjectRepository, aiService, cacheService) {
     this.conceptRepository = conceptRepository;
     this.documentRepository = documentRepository;
     this.subjectRepository = subjectRepository;
     this.aiService = aiService;
+    this.cacheService = cacheService;
   }
 
   /**
    * Xóa concept
    */
   async deleteConcept(conceptId) {
+    const existing = await this.conceptRepository.findById(conceptId).catch(() => null);
+    if (!existing) {
+      return { message: 'Khái niệm không tồn tại hoặc đã bị xóa.', conceptId };
+    }
+
     const deleted = await this.conceptRepository.delete(conceptId);
     if (!deleted) {
       return { message: 'Khái niệm không tồn tại hoặc đã bị xóa.', conceptId };
+    }
+
+    const subjectId = existing?.document?.subjectId;
+    if (subjectId) {
+      await this._invalidateSubjectCaches(subjectId);
     }
     return { message: 'Xóa khái niệm thành công!', conceptId };
   }
@@ -40,6 +51,8 @@ class ConceptService {
     if (deletedCount === 0) {
       return { message: 'Khái niệm không tồn tại hoặc đã bị xóa.', term };
     }
+
+    await this._invalidateSubjectCaches(subjectId);
 
     return { message: `Đã xóa ${deletedCount} khái niệm cùng tên.`, term };
   }
@@ -69,6 +82,8 @@ class ConceptService {
     if (updatedCount === 0) {
       return { message: 'Khái niệm không tồn tại hoặc không có thay đổi.', currentTerm };
     }
+
+    await this._invalidateSubjectCaches(subjectId);
 
     return { message: `Đã cập nhật ${updatedCount} khái niệm.`, currentTerm };
   }
@@ -129,7 +144,16 @@ class ConceptService {
       }
     }
 
+    await this._invalidateSubjectCaches(subjectId);
+
     return { message: 'Tạo khái niệm thủ công thành công!', concept: created };
+  }
+
+  async _invalidateSubjectCaches(subjectId) {
+    if (!this.cacheService) return;
+    await this.cacheService.del(`subject:${subjectId}:graph`);
+    await this.cacheService.delByPattern(`subject:${subjectId}:quiz:*`);
+    await this.cacheService.delByPattern(`user:*:subject:${subjectId}:roadmap`);
   }
 
   /**

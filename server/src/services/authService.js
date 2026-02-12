@@ -15,7 +15,7 @@ class AuthService {
     this.userRepository = userRepository;
     this.emailService = emailService;
     this.jwtSecret = process.env.JWT_SECRET || 'default_secret_change_this_in_production';
-    this.appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:5173';
+    this.appBaseUrl = process.env.APP_BASE_URL || 'https://aiinterviewcoach.id.vn';
     this.googleClientId = process.env.GOOGLE_CLIENT_ID || '';
     this.googleClient = new OAuth2Client(this.googleClientId);
   }

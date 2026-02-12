@@ -41,6 +41,8 @@ const createDocumentRoutes = (container) => {
   });
 
   router.post('/upload', upload.single('pdfFile'), validateDocumentUpload, documentController.uploadDocument);
+  router.post('/upload-sync', upload.single('pdfFile'), validateDocumentUpload, documentController.uploadDocumentSync);
+  router.get('/:documentId/status', validateDocumentId, documentController.getDocumentStatus);
   router.delete('/:documentId', validateDocumentId, documentController.deleteDocument);
 
   return router;

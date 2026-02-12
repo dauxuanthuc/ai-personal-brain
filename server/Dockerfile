@@ -13,8 +13,8 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install dependencies (use npm install instead of npm ci to handle lock file sync)
+RUN npm install --only=production && npm cache clean --force
 
 # Generate Prisma Client
 RUN npx prisma generate

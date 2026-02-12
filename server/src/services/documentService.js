@@ -8,15 +8,71 @@ const pdf = require('pdf-parse');
 const ValidationException = require('../exceptions/ValidationException');
 
 class DocumentService {
-  constructor(documentRepository, conceptRepository, subjectRepository, aiService) {
+  constructor(documentRepository, conceptRepository, subjectRepository, aiService, cacheService, queueService = null) {
     this.documentRepository = documentRepository;
     this.conceptRepository = conceptRepository;
     this.subjectRepository = subjectRepository;
     this.aiService = aiService;
+    this.cacheService = cacheService;
+    this.queueService = queueService;
   }
 
   /**
-   * Upload và process document
+   * Upload document with async processing using queue
+   * Recommended for production use - avoids timeout issues
+   */
+  async uploadDocumentAsync(file, subjectId, userId) {
+    if (!file) {
+      throw new ValidationException('Vui lòng upload file PDF', 'file');
+    }
+
+    try {
+      // Verify subject exists and user has access
+      const subject = await this.subjectRepository.findById(subjectId);
+      if (!subject || subject.userId !== userId) {
+        throw new ValidationException('Subject not found or access denied', 'subjectId');
+      }
+
+      // Create document record with pending status
+      const newDoc = await this.documentRepository.create({
+        title: file.originalname,
+        filePath: file.path,
+        fileSize: file.size,
+        subjectId,
+        processingStatus: 'pending',
+      });
+
+      // Add to processing queue
+      if (this.queueService) {
+        const jobInfo = await this.queueService.addPdfProcessingJob({
+          documentId: newDoc.id,
+          filePath: file.path,
+          subjectId,
+          title: file.originalname,
+        });
+
+        return {
+          message: 'Document uploaded successfully. Processing in background...',
+          document: newDoc,
+          job: jobInfo,
+          status: 'pending',
+        };
+      } else {
+        // Fallback to synchronous processing if queue not available
+        return await this.uploadDocument(file, subjectId);
+      }
+    } catch (error) {
+      // Clean up file on error
+      if (file.path && fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Upload và process document (synchronous - legacy)
+   * Warning: May timeout for large PDFs
    */
   async uploadDocument(file, subjectId) {
     if (!file) {
@@ -53,6 +109,8 @@ class DocumentService {
       // Lưu concepts vào DB với deduplication
       await this._saveConcepts(concepts, newDoc.id, subjectId);
 
+      await this._invalidateSubjectCaches(subjectId);
+
       return {
         message: 'Xử lý thành công!',
         document: newDoc,
@@ -80,7 +138,18 @@ class DocumentService {
       console.log(`✅ Xóa file: ${document.filePath}`);
     }
 
+    if (document?.subjectId) {
+      await this._invalidateSubjectCaches(document.subjectId);
+    }
+
     return { message: 'Xóa tài liệu thành công!', documentId };
+  }
+
+  async _invalidateSubjectCaches(subjectId) {
+    if (!this.cacheService) return;
+    await this.cacheService.del(`subject:${subjectId}:graph`);
+    await this.cacheService.delByPattern(`subject:${subjectId}:quiz:*`);
+    await this.cacheService.delByPattern(`user:*:subject:${subjectId}:roadmap`);
   }
 
   /**
