@@ -27,10 +27,15 @@ class DocumentService {
     }
 
     try {
-      // Verify subject exists and user has access
+      // Verify subject exists
       const subject = await this.subjectRepository.findById(subjectId);
-      if (!subject || subject.userId !== userId) {
-        throw new ValidationException('Subject not found or access denied', 'subjectId');
+      if (!subject) {
+        throw new ValidationException('Subject not found', 'subjectId');
+      }
+
+      // If userId provided, verify access
+      if (userId && subject.userId !== userId) {
+        throw new ValidationException('Access denied', 'subjectId');
       }
 
       // Create document record with pending status

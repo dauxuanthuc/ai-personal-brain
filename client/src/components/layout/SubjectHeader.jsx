@@ -21,7 +21,7 @@ export default function SubjectHeader({
 }) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   return (
-    <div className="z-10 p-6 flex justify-between items-start border-b border-slate-800/50 flex-shrink-0">
+    <div className="z-10 p-6 flex justify-between items-start border-b border-slate-700/40 flex-shrink-0 bg-slate-900/35 backdrop-blur-sm">
       <div>
         {selectedSubject ? (
           <div className="animate-in slide-in-from-left-4">
@@ -43,14 +43,14 @@ export default function SubjectHeader({
 
       {selectedSubject && (
         <div className="flex gap-3 items-start">
-          <div className="relative w-[320px]">
+          <div className="relative w-[420px] max-w-[45vw]">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchQueryChange(e.target.value)}
-              placeholder="Tìm node để xem/sửa..."
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Tìm kiếm khái niệm, tài liệu..."
+              className="w-full bg-slate-800/90 border border-slate-600 rounded-xl pl-9 pr-3 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-300"
             />
 
             {searchQuery?.trim().length > 0 && (
@@ -83,28 +83,29 @@ export default function SubjectHeader({
             <>
               <button
                 onClick={onStartQuiz}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all transform hover:scale-105 active:scale-95"
+                className="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white px-4 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition"
               >
-                <Brain size={20} />
+                <Brain size={18} />
                 Ôn tập
               </button>
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all transform hover:scale-105 active:scale-95"
+                className="text-slate-300 hover:text-white px-2.5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition"
               >
-                <Share2 size={20} />
+                <Share2 size={18} />
                 Chia sẻ
               </button>
               <button
                 onClick={onAddConcept}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all transform hover:scale-105 active:scale-95"
+                className="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white px-4 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition"
               >
-                <PlusCircle size={20} />
+                <PlusCircle size={18} />
                 Thêm khái niệm
               </button>
               <div className="flex flex-col items-stretch gap-2">
-                <label className="cursor-pointer bg-white text-slate-900 hover:bg-blue-50 px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all transform hover:scale-105 active:scale-95">
-                  {loading ? <Loader2 className="animate-spin" /> : <Upload size={20} />}
+                <label className="cursor-pointer bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-400 hover:to-blue-500 px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-[0_10px_24px_rgba(37,99,235,0.35)] transition">
+                  {loading ? <Loader2 className="animate-spin" /> : <Upload size={18} />}
+                  <span className="text-base leading-none">＋</span>
                   {loading ? 'Đang học...' : 'Nạp tài liệu'}
                   <input type="file" className="hidden" accept=".pdf" onChange={onFileUpload} />
                 </label>

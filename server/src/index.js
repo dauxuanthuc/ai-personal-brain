@@ -62,6 +62,7 @@ app.use(cors(corsOptions));
 // Security Middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: { policy: 'unsafe-none' }, // Allow Google OAuth popup
   contentSecurityPolicy: false, // Allow frontend to load resources
 }));
 
@@ -76,7 +77,7 @@ const limiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5, // 5 login attempts per 15 minutes
+  max: 30, // 30 login attempts per 15 minutes (to support Google OAuth retries)
   message: 'Too many login attempts, please try again later.',
   skipSuccessfulRequests: true,
 });
