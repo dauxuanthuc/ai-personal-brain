@@ -20,23 +20,23 @@ export default function Sidebar({
   getAvatarSrc,
 }) {
   return (
-    <div className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-20 shadow-xl">
-      <div className="p-5 border-b border-slate-800 flex items-center gap-3">
+    <div className="w-64 bg-[#111827] border-r border-slate-700/60 flex flex-col z-20 shadow-xl">
+      <div className="p-5 border-b border-slate-700/60 flex items-center gap-3">
         <div className="bg-blue-600 p-2 rounded-lg"><BrainCircuit size={20} /></div>
         <h1 className="font-bold text-lg">My Brain</h1>
       </div>
 
-      <div className="p-3 border-b border-slate-800">
+      <div className="p-3 border-b border-slate-700/60">
         <button
           onClick={onOpenDashboard}
-          className="w-full flex items-center gap-2 text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700 px-3 py-2 rounded-lg transition text-sm font-bold"
+          className="w-full flex items-center gap-2 text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700/80 px-3 py-2 rounded-lg transition text-sm font-bold"
         >
           <LayoutGrid size={16} /> Dashboard
         </button>
       </div>
 
       {selectedSubject && (
-        <div className="p-3 border-b border-slate-800">
+        <div className="p-3 border-b border-slate-700/60">
           <button
             onClick={onToggleChat}
             className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition text-sm font-bold ${isChatOpen ? 'bg-purple-600 text-white' : 'text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700'}`}
@@ -69,7 +69,7 @@ export default function Sidebar({
             ) : (
               <button
                 onClick={onCreateSubjectStart}
-                className="w-full flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800 px-3 py-2 rounded-lg transition text-sm mb-2 border border-dashed border-slate-700"
+                className="w-full flex items-center gap-2 text-slate-400 hover:text-cyan-300 hover:bg-slate-800/60 px-3 py-2 rounded-lg transition text-sm mb-2"
               >
                 <FolderPlus size={16} /> Thêm môn học
               </button>
@@ -80,8 +80,11 @@ export default function Sidebar({
         {subjects.map(sub => (
           <div
             key={sub.id}
-            className={`group flex items-center justify-between px-3 py-3 rounded-lg text-sm transition ${selectedSubject?.id === sub.id ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-300 hover:bg-slate-800'}`}
+            className={`group relative flex items-center justify-between px-3 py-3 rounded-lg text-sm transition ${selectedSubject?.id === sub.id ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-slate-800/70'}`}
           >
+            {selectedSubject?.id === sub.id && (
+              <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-cyan-400" />
+            )}
             <button
               onClick={() => onSelectSubject(sub)}
               className="flex-1 flex items-center gap-2 truncate text-left"
@@ -108,7 +111,7 @@ export default function Sidebar({
         ))}
       </div>
 
-      <div className="p-4 border-t border-slate-800 bg-slate-900/50">
+      <div className="p-4 border-t border-slate-700/60 bg-slate-900/40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {user?.avatarUrl ? (

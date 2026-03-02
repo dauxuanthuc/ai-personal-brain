@@ -6,6 +6,7 @@
 const express = require('express');
 const multer = require('multer');
 const { validateDocumentUpload, validateDocumentId } = require('../middleware/validationMiddleware');
+const { optionalAuth } = require('../middleware/authMiddleware');
 
 const createDocumentRoutes = (container) => {
   const router = express.Router();
@@ -40,10 +41,10 @@ const createDocumentRoutes = (container) => {
     },
   });
 
-  router.post('/upload', upload.single('pdfFile'), validateDocumentUpload, documentController.uploadDocument);
-  router.post('/upload-sync', upload.single('pdfFile'), validateDocumentUpload, documentController.uploadDocumentSync);
-  router.get('/:documentId/status', validateDocumentId, documentController.getDocumentStatus);
-  router.delete('/:documentId', validateDocumentId, documentController.deleteDocument);
+  router.post('/upload', optionalAuth, upload.single('pdfFile'), validateDocumentUpload, documentController.uploadDocument);
+  router.post('/upload-sync', optionalAuth, upload.single('pdfFile'), validateDocumentUpload, documentController.uploadDocumentSync);
+  router.get('/:documentId/status', optionalAuth, validateDocumentId, documentController.getDocumentStatus);
+  router.delete('/:documentId', optionalAuth, validateDocumentId, documentController.deleteDocument);
 
   return router;
 };

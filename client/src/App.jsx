@@ -729,7 +729,7 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen w-full bg-[#020617] text-white font-sans overflow-hidden">
+    <div className="flex h-screen w-full bg-[#1e293b] text-white font-sans overflow-hidden">
       <Sidebar
         user={user}
         subjects={subjects}
@@ -750,7 +750,7 @@ function App() {
       />
 
       {/* 2. MAIN AREA */}
-      <div className="flex-1 relative bg-[#020617] flex flex-col h-screen overflow-hidden">
+      <div className="flex-1 relative bg-[#1e293b] flex flex-col h-screen overflow-hidden">
         <SubjectHeader
           selectedSubject={selectedSubject}
           graphData={graphData}

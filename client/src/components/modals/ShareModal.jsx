@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { API_URL } from '../../config/api';
 import { Copy, CheckCircle, Loader2, X, Globe, Lock, Mail, Trash2, Users } from 'lucide-react';
 
@@ -176,10 +177,11 @@ export default function ShareModal({ isOpen, selectedSubject, onClose }) {
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in-95">
-        <div className="flex justify-between items-center mb-4">
+  const modalContent = (
+    <div className="fixed inset-0 bg-black/50 z-[1000] overflow-y-auto p-4 sm:p-6">
+      <div className="min-h-full flex items-center justify-center">
+        <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4 sticky top-0 bg-slate-900 z-10 pb-2">
           <h3 className="text-xl font-bold text-white">Chia sẻ: {selectedSubject?.name}</h3>
           <button
             onClick={onClose}
@@ -442,6 +444,9 @@ export default function ShareModal({ isOpen, selectedSubject, onClose }) {
           )}
         </div>
       </div>
+      </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

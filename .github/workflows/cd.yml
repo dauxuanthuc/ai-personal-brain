@@ -1,0 +1,102 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+
+            if [ ! -d "${{ secrets.DEPLOY_PATH }}" ]; then
+              echo "DEPLOY_PATH does not exist: ${{ secrets.DEPLOY_PATH }}"
+              exit 1
+            fi
+
+            cd "${{ secrets.DEPLOY_PATH }}"
+            PREVIOUS_COMMIT=$(git rev-parse HEAD)
+            git fetch --all
+            git reset --hard origin/main
+            NEW_COMMIT=$(git rev-parse HEAD)
+
+            if command -v docker-compose >/dev/null 2>&1; then
+              DOCKER_COMPOSE="docker-compose"
+            elif docker compose version >/dev/null 2>&1; then
+              DOCKER_COMPOSE="docker compose"
+            else
+              echo "Docker Compose not found on server"
+              exit 1
+            fi
+
+            $DOCKER_COMPOSE pull || true
+            $DOCKER_COMPOSE up -d --build --remove-orphans
+
+            HEALTHCHECK_URL="${{ secrets.HEALTHCHECK_URL }}"
+            if [ -z "$HEALTHCHECK_URL" ]; then
+              HEALTHCHECK_URL="http://localhost:5000/health"
+            fi
+
+            echo "Health check URL: $HEALTHCHECK_URL"
+
+            ATTEMPTS=12
+            SLEEP_SECONDS=5
+            check_health() {
+              local attempts="$1"
+              local sleep_seconds="$2"
+
+              for i in $(seq 1 "$attempts"); do
+                if curl -fsS "$HEALTHCHECK_URL" >/dev/null; then
+                  echo "Health check passed"
+                  return 0
+                fi
+
+                if [ "$i" -lt "$attempts" ]; then
+                  echo "Health check failed (attempt $i/$attempts), retrying in ${sleep_seconds}s..."
+                  sleep "$sleep_seconds"
+                fi
+              done
+
+              return 1
+            }
+
+            if check_health "$ATTEMPTS" "$SLEEP_SECONDS"; then
+              docker image prune -f
+              exit 0
+            fi
+
+            echo "Health check failed after $ATTEMPTS attempts"
+            $DOCKER_COMPOSE ps
+            $DOCKER_COMPOSE logs --tail=200 server || true
+
+            if [ "$PREVIOUS_COMMIT" != "$NEW_COMMIT" ]; then
+              echo "Starting rollback to previous commit: $PREVIOUS_COMMIT"
+              git reset --hard "$PREVIOUS_COMMIT"
+              $DOCKER_COMPOSE up -d --build --remove-orphans
+
+              if check_health "$ATTEMPTS" "$SLEEP_SECONDS"; then
+                echo "Rollback successful. Workflow will fail to notify deployment issue."
+                exit 1
+              fi
+
+              echo "Rollback attempt failed health check"
+              $DOCKER_COMPOSE ps
+              $DOCKER_COMPOSE logs --tail=200 server || true
+              exit 1
+            fi
+
+            echo "Rollback skipped because there is no previous commit to revert"
+            exit 1
