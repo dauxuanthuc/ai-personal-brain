@@ -8,7 +8,7 @@
 
 ## Login
 1. Click extension icon.
-2. Enter `API Base URL` (default: `https://aiinterviewcoach.id.vn/api`).
+2. Enter `API Base URL` (default: `https://aiinterviewcoach.id.vn`).
 3. Login with your AI Personal Brain account (email/password) or `Dang nhap voi Google`.
 
 ### Google login note
@@ -16,7 +16,6 @@
 - You must whitelist the extension redirect URI in Google Cloud OAuth client settings:
   - Format: `https://<your-extension-id>.chromiumapp.org/`
 - If you still see `redirect_uri_mismatch`, copy the exact URI shown in extension error and add it to `Authorized redirect URIs` of your OAuth client.
-- You can override `Google Client ID` directly in extension popup when testing multiple OAuth clients.
 
 ## Usage
 1. Open any webpage (Wikipedia, Medium, Docs, etc.).
@@ -36,7 +35,7 @@
 3. Status examples: `waiting`, `active`, `completed`, `failed`.
 
 ## Payload sent to backend
-`POST /api/extension/save`
+`POST /extension/save`
 
 ```json
 {

@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE_URL = 'https://aiinterviewcoach.id.vn/api';
+const DEFAULT_API_BASE_URL = 'https://aiinterviewcoach.id.vn';
 const DEFAULT_GOOGLE_CLIENT_ID = '655409197383-ossuvrrka5gkhvplf0s9b78eao8oeas4.apps.googleusercontent.com';
 const CONTEXT_MENU_ID = 'save-selection-ai-brain';
 
@@ -75,13 +75,9 @@ async function login({ email, password, apiBaseUrl }) {
   return doBackendLogin(base, { email, password });
 }
 
-async function loginWithGoogle({ apiBaseUrl, googleClientId }) {
+async function loginWithGoogle({ apiBaseUrl }) {
   const base = (apiBaseUrl || (await getApiBaseUrl())).replace(/\/$/, '');
-  const clientId = (googleClientId || DEFAULT_GOOGLE_CLIENT_ID).trim();
-
-  if (!clientId) {
-    throw new Error('Missing Google client id');
-  }
+  const clientId = DEFAULT_GOOGLE_CLIENT_ID;
 
   // Use the default extension redirect URI because many OAuth clients whitelist this exact value.
   const redirectUri = chrome.identity.getRedirectURL();
@@ -139,7 +135,6 @@ async function loginWithGoogle({ apiBaseUrl, googleClientId }) {
     token: payload.token,
     user: payload.user || null,
     apiBaseUrl: base,
-    googleClientId: clientId,
   });
 
   return payload;
@@ -308,7 +303,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
 
       if (message?.type === 'GET_AUTH') {
-        const state = await getStorage(['token', 'user', 'apiBaseUrl', 'lastJob', 'googleClientId']);
+        const state = await getStorage(['token', 'user', 'apiBaseUrl', 'lastJob']);
         sendResponse({ ok: true, data: state });
         return;
       }
