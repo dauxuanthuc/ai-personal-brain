@@ -83,7 +83,8 @@ async function loginWithGoogle({ apiBaseUrl, googleClientId }) {
     throw new Error('Missing Google client id');
   }
 
-  const redirectUri = chrome.identity.getRedirectURL('google');
+  // Use the default extension redirect URI because many OAuth clients whitelist this exact value.
+  const redirectUri = chrome.identity.getRedirectURL();
   const nonce = randomString(28);
 
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
@@ -94,7 +95,16 @@ async function loginWithGoogle({ apiBaseUrl, googleClientId }) {
   authUrl.searchParams.set('nonce', nonce);
   authUrl.searchParams.set('prompt', 'select_account');
 
-  const redirected = await launchWebAuthFlow(authUrl.toString());
+  let redirected = '';
+  try {
+    redirected = await launchWebAuthFlow(authUrl.toString());
+  } catch (error) {
+    const msg = String(error?.message || 'OAuth failed');
+    if (msg.toLowerCase().includes('redirect_uri_mismatch')) {
+      throw new Error(`redirect_uri_mismatch. Add this URI to Google OAuth client: ${redirectUri}`);
+    }
+    throw error;
+  }
   if (!redirected) {
     throw new Error('Google login cancelled');
   }
@@ -105,7 +115,11 @@ async function loginWithGoogle({ apiBaseUrl, googleClientId }) {
   const idToken = params.get('id_token');
 
   if (!idToken) {
-    throw new Error('Could not get id_token from Google response');
+    const errorParam = params.get('error');
+    if (errorParam) {
+      throw new Error(`Google OAuth error: ${errorParam}`);
+    }
+    throw new Error(`Could not get id_token from Google response. Required redirect URI: ${redirectUri}`);
   }
 
   const response = await fetch(`${base}/auth/google`, {
@@ -125,6 +139,7 @@ async function loginWithGoogle({ apiBaseUrl, googleClientId }) {
     token: payload.token,
     user: payload.user || null,
     apiBaseUrl: base,
+    googleClientId: clientId,
   });
 
   return payload;
@@ -293,7 +308,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       }
 
       if (message?.type === 'GET_AUTH') {
-        const state = await getStorage(['token', 'user', 'apiBaseUrl', 'lastJob']);
+        const state = await getStorage(['token', 'user', 'apiBaseUrl', 'lastJob', 'googleClientId']);
         sendResponse({ ok: true, data: state });
         return;
       }
