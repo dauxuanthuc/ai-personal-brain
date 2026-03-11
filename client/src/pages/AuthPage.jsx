@@ -400,16 +400,18 @@ const AuthPage = ({ onLoginSuccess }) => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
               {!isLogin && (
                 <div className="relative group">
                   <User className="absolute left-3 top-3 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={20} />
                   <input
                     type="text"
+                    name="name"
                     placeholder="Họ và tên"
                     className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none input-glow placeholder-slate-500"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    autoComplete="name"
                     required
                   />
                 </div>
@@ -419,10 +421,12 @@ const AuthPage = ({ onLoginSuccess }) => {
                 <Mail className="absolute left-3 top-3 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={20} />
                 <input
                   type="email"
+                  name="email"
                   placeholder="Email"
                   className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none input-glow placeholder-slate-500"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -431,10 +435,12 @@ const AuthPage = ({ onLoginSuccess }) => {
                 <Lock className="absolute left-3 top-3 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={20} />
                 <input
                   type="password"
+                  name="password"
                   placeholder="Mật khẩu"
                   className="w-full bg-slate-950 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none input-glow placeholder-slate-500"
                   value={formData.password}
                   onChange={e => setFormData({ ...formData, password: e.target.value })}
+                  autoComplete={isLogin ? 'current-password' : 'new-password'}
                   required
                 />
               </div>

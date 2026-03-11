@@ -14,7 +14,9 @@
 ### Google login note
 - Google OAuth in extension uses `chrome.identity.launchWebAuthFlow`.
 - You must whitelist the extension redirect URI in Google Cloud OAuth client settings:
-  - Format: `https://<your-extension-id>.chromiumapp.org/google`
+  - Format: `https://<your-extension-id>.chromiumapp.org/`
+- If you still see `redirect_uri_mismatch`, copy the exact URI shown in extension error and add it to `Authorized redirect URIs` of your OAuth client.
+- You can override `Google Client ID` directly in extension popup when testing multiple OAuth clients.
 
 ## Usage
 1. Open any webpage (Wikipedia, Medium, Docs, etc.).

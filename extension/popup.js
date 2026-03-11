@@ -6,6 +6,7 @@ const statusEl = document.getElementById('status');
 const emailEl = document.getElementById('email');
 const passwordEl = document.getElementById('password');
 const apiBaseUrlEl = document.getElementById('api-base-url');
+const googleClientIdEl = document.getElementById('google-client-id');
 const googleLoginBtn = document.getElementById('google-login-btn');
 const jobCardEl = document.getElementById('job-card');
 const jobMetaEl = document.getElementById('job-meta');
@@ -60,6 +61,9 @@ async function loadState() {
   const data = authRes?.data || {};
 
   apiBaseUrlEl.value = data.apiBaseUrl || DEFAULT_API_BASE_URL;
+  if (googleClientIdEl) {
+    googleClientIdEl.value = data.googleClientId || '';
+  }
 
   if (data.token) {
     renderLoggedIn(data.user, data.apiBaseUrl || DEFAULT_API_BASE_URL, data.lastJob);
@@ -102,12 +106,14 @@ loginForm.addEventListener('submit', async (event) => {
 
 googleLoginBtn.addEventListener('click', async () => {
   const apiBaseUrl = (apiBaseUrlEl.value.trim() || DEFAULT_API_BASE_URL).replace(/\/$/, '');
+  const googleClientId = (googleClientIdEl?.value || '').trim();
   setStatus('Dang mo Google login...');
 
   const response = await sendMessage({
     type: 'LOGIN_GOOGLE',
     payload: {
       apiBaseUrl,
+      googleClientId,
     },
   });
 
